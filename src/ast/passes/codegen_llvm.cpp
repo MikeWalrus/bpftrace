@@ -594,7 +594,7 @@ ScopedExpr CodegenLLVM::kstack_ustack(const std::string &ident,
   // ustack keys are special: see IRBuilderBPF::GetStackStructType()
   if (is_ustack) {
     // store pid
-    b_.CreateStore(b_.CreateGetPid(loc),
+    b_.CreateStore(b_.CreateGetPid(loc, PidNamespace::inherit),
                    b_.CreateGEP(stack_key_struct,
                                 stack_key,
                                 { b_.getInt64(0), b_.getInt32(2) }));
@@ -641,7 +641,7 @@ ScopedExpr CodegenLLVM::visit(Builtin &builtin)
                          builtin.builtin_type.stack_type,
                          builtin.loc);
   } else if (builtin.ident == "pid") {
-    return ScopedExpr(b_.CreateGetPid(builtin.loc));
+    return ScopedExpr(b_.CreateGetPid(builtin.loc, PidNamespace::inherit));
   } else if (builtin.ident == "tid") {
     return ScopedExpr(b_.CreateGetTid(builtin.loc));
   } else if (builtin.ident == "cgroup") {
@@ -1779,6 +1779,8 @@ ScopedExpr CodegenLLVM::visit(Call &call)
     } else {
       return ScopedExpr(b_.CreateGetNs(call.return_type.ts_mode, call.loc));
     }
+  } else if (call.func == "pid") {
+    return ScopedExpr(b_.CreateGetPid(call.loc, call.return_type.pid_ns));
   } else {
     LOG(BUG) << "missing codegen for function \"" << call.func << "\"";
     __builtin_unreachable();

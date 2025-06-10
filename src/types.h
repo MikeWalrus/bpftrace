@@ -50,6 +50,7 @@ enum class Type : uint8_t {
   cgroup_path_t,
   strerror_t,
   timestamp_mode,
+  pid_namespace,
   // clang-format on
 };
 
@@ -147,6 +148,8 @@ enum class TimestampMode : uint8_t {
   sw_tai,
 };
 
+enum class PidNamespace : uint8_t { init, inherit };
+
 struct Struct;
 struct Field;
 
@@ -170,6 +173,7 @@ public:
   bool is_funcarg = false;
   bool is_btftype = false;
   TimestampMode ts_mode = TimestampMode::boot;
+  PidNamespace pid_ns = PidNamespace::inherit;
 
 private:
   Type type_;
@@ -569,6 +573,7 @@ SizedType CreateMacAddress();
 SizedType CreateCgroupPath();
 SizedType CreateStrerror();
 SizedType CreateTimestampMode();
+SizedType CreatePidNamespace();
 
 std::string addrspacestr(AddrSpace as);
 std::string typestr(Type t);

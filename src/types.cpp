@@ -88,6 +88,7 @@ std::string typestr(const SizedType &type, bool debug)
     case Type::lhist_t:
     case Type::none:
     case Type::voidtype:
+    case Type::pid_namespace:
       return typestr(type.GetTy());
   }
 
@@ -229,6 +230,7 @@ std::string typestr(Type t)
     case Type::cgroup_path_t: return "cgroup_path_t"; break;
     case Type::strerror_t: return "strerror_t"; break;
     case Type::timestamp_mode: return "timestamp_mode"; break;
+    case Type::pid_namespace: return "pid_namespace"; break;
       // clang-format on
   }
 
@@ -480,6 +482,11 @@ SizedType CreateStrerror()
 SizedType CreateTimestampMode()
 {
   return { Type::timestamp_mode, 0 };
+}
+
+SizedType CreatePidNamespace()
+{
+  return { Type::pid_namespace, 0 };
 }
 
 bool SizedType::IsSigned() const

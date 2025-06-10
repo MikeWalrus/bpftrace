@@ -589,7 +589,14 @@ static const std::map<std::string, call_spec> CALL_SPEC = {
       .max_args=1,
       .arg_types={
         map_type_spec{},
-      } } },
+      } },
+  },
+  { "pid",
+    { .min_args=0,
+      .max_args=1,
+      .arg_types={
+        arg_type_spec{ .type = Type::pid_namespace } } },
+  },
 };
 // clang-format on
 
@@ -685,6 +692,7 @@ static bool IsValidVarDeclType(const SizedType &ty)
     case Type::strerror_t:
     case Type::none:
     case Type::timestamp_mode:
+    case Type::pid_namespace:
       return true;
   }
   return false; // unreachable
@@ -753,6 +761,13 @@ void SemanticAnalyser::visit(Identifier &identifier)
       identifier.ident_type.ts_mode = TimestampMode::sw_tai;
     } else {
       identifier.addError() << "Invalid timestamp mode: " << identifier.ident;
+    }
+  } else if (func_ == "pid") {
+    identifier.ident_type = CreatePidNamespace();
+    if (identifier.ident == "inherit") {
+      identifier.ident_type.pid_ns = PidNamespace::inherit;
+    } else if (identifier.ident == "init") {
+      identifier.ident_type.pid_ns = PidNamespace::init;
     }
   } else {
     // Final attempt: try to parse as a stack mode.
@@ -1728,6 +1743,12 @@ If you're seeing errors, try clamping the string sizes. For example:
         !bpftrace_.delta_taitime_.has_value()) {
       call.addError() << "Failed to initialize sw_tai in "
                          "userspace. This is very unexpected.";
+    }
+  } else if (call.func == "pid") {
+    call.return_type = CreateInt32();
+    call.return_type.pid_ns = PidNamespace::inherit;
+    if (call.vargs.size() == 1) {
+      call.return_type.pid_ns = call.vargs.at(0).type().pid_ns;
     }
   } else {
     call.addError() << "Unknown function: '" << call.func << "'";
